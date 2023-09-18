@@ -1,12 +1,44 @@
-# Labyrinth PCB Board
+# Sparklezord PCB Board
 
-A board made for Midburn projects (Labyrinth / Sangha).
+A PCB design for Esp32 module (generic devkit 30p variant), to drive up to 10 addressable led strips with WLED.
+<br/>Also has headers for an IMNP441 digital mic, for sound reactive effects.
 
-This repo contains the Gerber file (defining the PCB circuitry), and the BOM/CPL (defining the placement for assembly)
+Made for Midburn projects and the burner community. ♥  If you make something cool with this, Let me know!
 
-![image](./labyrinth_pcb_v0.4_01.png)
+This repo contains:
+* The Gerber file (defining the PCB circuitry)
+* The BOM (parts list)
+* The CPL ("pick'n'place" file for assembly)
+
+With these 3 files, you should be able to order these from any major PCB fab.
+The tutorial below shows [how to order from JLCPCB](#how-to-order), because what I'm familiar with
+
+
+This is a medium-sized board - v1.0 of the module measures 85 x 100mm
+
+<img src="./images/sparklezord_front_v1.0.jpg" alt="sparklezord pcb front image" width="400"/>
+<img src="./images/sparklezord_back_v1.0.jpg" alt="sparklezord pcb back image and logo" width="400"/>
+
+# Default pins feature
+
+## Using Default pins
+The board comes with dip switches for all led and mic pins except MIC SD.
+Make sure the dip switch is ON (lever pointing away from the esp32) to use the default pins.
+
+## Overriding default pins
+To wire your own pins, you can turn the dip switch off (towards the esp module) and solder a male dupont wire to the pad directly next to the dip switch.
+then plug the dupont into the header for whatever pin you like.
+
+## MIC SD Pin
+To save costs, an extra pin (MIC SD - GPIO 32) does not use a dip switch, rather a simple male header.
+To use the default pin, either use a jumper to connect the pins, or solder them directly
+
+To override it, use a male-to-female dupont wire to jump the right pin (further from the esp) to whatever pin you like on the esp header.
 
 # How to Order
+
+First, locate the relevant files by version. For instance, [v1.0](./v1.0/) contains the BOM, Gerber, and pick'n'place file's you'll need.
+
 
 ## Main order - PCB
 
@@ -45,18 +77,9 @@ There are optional headers for an [IMNP441 mic module](https://www.aliexpress.co
 You'll need to solder connectors for your leds to work. Generally JST-SM connectors are used (the 3-pin variant for the most popular WS2812 strips).
 You can find these on AliExpress
 
-## PCB Power switch
-
-The LEDs power switch used is not available in economic PCB assembly (which is much cheaper)
-So I batch order them from LCSC.
-
-You can order them here https://www.lcsc.com/product-detail/Slide-Switches_XKB-Connectivity-SS-12M11G5_C2879839.html
-
-Or you can solder where the big switch would be instead, and the LEDs will always be on if the PCB is connected to power.
-
 ## Capacitor
 
-Optionally, you can add a 1000uF electrolytic capacitor to the board to smooth out the power supply a bit.
+Optionally, you can one or two 1000uF electrolytic capacitors to the board to smooth out the led power supply a bit.
 
 # Setup
 
@@ -78,12 +101,27 @@ Optionally, you can add a 1000uF electrolytic capacitor to the board to smooth o
 
 Once WLED is working - connect to it (via APP or web interface), and go to settings to configure these pins:
 
-### Led pins:
+NOTE: Make sure to follow the instructions on [Setting up default pins](#default-pins-feature), or these pins may not work!
 
-1. GPIO 13
-1. GPIO 14
-1. GPIO 27
-1. GPIO 26
+### Led pins
+1.  GPIO 2
+2.  GPIO 4
+3.  GPIO 16
+4.  GPIO 17
+5.  GPIO 5
+
+6.  GPIO 12
+7.  GPIO 27
+8.  GPIO 26
+9.  GPIO 25
+10. GPIO 33
+
+### Mic (Uses the defualt I2S Digital mic pins)
+* SD  D32
+* WS  D15
+* SCK D14
+
+(LR is hardwired to GND)
 
 ### Microphone pins
 
@@ -92,3 +130,22 @@ Set the mic mode to Digital (I2S), with these pins:
 - SCK: GPIO 16
 - SD: GPIO 4
 - WS: GPIO 15
+
+
+## Powering the board
+There are two power inputs for the led Vin (power plane on bottom layer), and a separate power input for the Esp32.
+These are conveniently spaced 5.08mm apart (200mil) which fits many screw terminals and some power connectors.
+
+Hook up 5-6v to the Esp32 (on-board LDOs drop this to 3v3)
+
+and usually 5v for leds as well (but check your specific brand of leds, some are 12v).
+The LED indicator is made for 5v and may not light up properly if your leds are a different voltage.
+
+There is also a diode to prevent the esp32 from powering the leds if bridged, which can fry USB ports if your esp is connected to serial on a PC.
+
+Happend to a friend. Multiple times :)
+
+### Bridging the Esp/led power input
+If you'd like to bridge the power between the Esp32 and the leds, you can jump the two pins that read "bridge pwr" near the esp power input.
+
+This can lead to less stable operation, as voltage dips from the leds compounded with noisy power supplies can cause brownouts on the esp32, possibly leading to freezes, resets and undefined behaviour.
